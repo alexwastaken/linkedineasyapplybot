@@ -278,8 +278,10 @@ class botClass():
 
         # Start the loop until 'Submit' button is clicked
         self.attempts = 0
-        while True:
-            if ()
+        while (True):
+            if (self.attempts > 8):
+                break
+
             self.attempts += 1
             # Try to click 'Continue to next step' button if it exists
             try:
