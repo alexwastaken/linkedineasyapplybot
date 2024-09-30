@@ -34,9 +34,9 @@ class botClass():
             "easy_apply_button": (By.XPATH, '//button[contains(@class, "jobs-apply-button")]')
         }
         self.jobIDs = []
-        self.position = "Full Stack"
-        self.location = "Redmond, WA"
-        self.mobileNumber = "4253762542"
+        self.positions = ["Full Stack", "Software Engineer", "Web Developer", "Front End Developer"]
+        self.locations = ["Redmond, Wa", "San Diego, CA", "San Francisco, CA", "Austin, TX"]
+        self.mobileNumber = "8582054657"
  
     def browser_options(self):
         options = webdriver.ChromeOptions()
@@ -48,12 +48,18 @@ class botClass():
         options.add_argument("--disable-blink-features=AutomationControlled")
 
         return options
+    
+    def choosePositionLocation(self) -> None:
+    
+        random_number = random.randint(1, 3)
+        self.position = self.positions[random_number]
+        self.location = self.locations[random_number]
 
     def login(self):
 
         time.sleep(2)
         self.elem = self.driver.find_element(By.ID, "username")
-        self.elem.send_keys("s64053094@gmail.com")
+        self.elem.send_keys("alexhparsons@gmail.com")
         time.sleep(1)
         self.elem = self.driver.find_element(By.ID, "password")
         self.elem.send_keys("Googleearth123!")
@@ -102,58 +108,90 @@ class botClass():
 
 
     def process_questions(self):
-        time.sleep(3)
+        time.sleep(0.5)
         try:
+            # Locate all fields in the job application form
             form = self.driver.find_elements(By.XPATH, "//div[contains(@class,'jobs-easy-apply-form-section__grouping')]")
+            
             for field in form:
                 question = field.text.lower()
-                answer = self.ans_question(question)
-                
+                answer = "yes"  # Set the answer to "Yes" for all radio buttons
+
                 try:
-                    # Check for radio buttons
+                    # Handle checkboxes: Find all checkboxes and check them regardless of labels
+                    checkboxes = field.find_elements(By.XPATH, ".//input[@type='checkbox']")
+                    if checkboxes:
+                        for checkbox in checkboxes:
+                            if not checkbox.is_selected():
+                                # Use JavaScript to check the checkbox
+                                self.driver.execute_script("arguments[0].click();", checkbox)
+                                print(f"Checked a checkbox for question: {question}")
+
+                    # Handle radio buttons: Select the "Yes" option for all radio button questions
                     radio_buttons = field.find_elements(By.XPATH, ".//input[@type='radio']")
                     if radio_buttons:
                         for radio in radio_buttons:
-                            if radio.get_attribute('value').lower() == answer.lower():
-                                self.driver.execute_script("arguments[0].click();", radio)
-                                break
+                            # If the value is "yes" (case-insensitive), select it
+                            if radio.get_attribute('value').strip().lower() == "yes":
+                                # Use JavaScript to click the radio button
+                                if not radio.is_selected():
+                                    self.driver.execute_script("arguments[0].click();", radio)
+                                    print(f"Selected 'Yes' for radio button question: {question}")
+                                break  # Exit once "Yes" is found and clicked
 
-                    # Check for multi-select dropdowns
+                    # Handle dropdowns (multi-select)
                     dropdowns = field.find_elements(By.XPATH, ".//*[contains(@id, 'text-entity-list-form-component')]")
                     if dropdowns:
                         for dropdown in dropdowns:
-                            for option in dropdown.find_elements(By.TAG_NAME, "option"):
-                                if option.text.lower() == answer.lower():
-                                    option.click()
-                                    break
+                            options = dropdown.find_elements(By.TAG_NAME, "option")
+                            if options:
+                                selected_option = random.choice(options[:2])  # Randomly choose between first and second options
+                                selected_option.click()
+                                break
 
-                    # Check for text inputs or textareas
+                    # Handle text inputs and text areas (if applicable)
                     text_inputs = field.find_elements(By.CSS_SELECTOR, "input[type='text'], textarea")
                     if text_inputs:
-
                         for text_input in text_inputs:
-                            text_input.clear()
+                            if text_input.get_attribute('value').strip():
+                                print(f"Field already populated with: {text_input.get_attribute('value')}, skipping it.")
+                                continue  # Skip if field is already populated
+
+                            # Send the "Yes" answer or relevant input
                             text_input.send_keys(answer)
 
-                            time.sleep(1)  # Give time for the dropdown to appear (if any)
+                            time.sleep(0.5)  # Allow time for the input to process
 
-                            # Simulate down arrow key to move to the first dropdown option
+                            # Simulate down arrow and Enter to handle dropdowns, if applicable
                             text_input.send_keys(Keys.ARROW_DOWN)
-
-                            # Simulate Enter key to select the first option
                             text_input.send_keys(Keys.ENTER)
-                        
+
                 except Exception as e:
+                    print(f"Error processing field: {e}")
                     pass
 
         except Exception as e:
-            print('nothing found-------------------------------------')
+            print(f"Error: {e}")
             return
 
     def ans_question(self, question): #refactor this to an ans.yaml file
         answer = None
         if "how many" in question:
             answer = "1"
+        elif "ever been employed" in question:
+            answer = "no"
+        elif "years of expierience" in question:
+            answer = "3"
+        elif "compensation" in question:
+            answer = "100000"
+        elif "salary" in question:
+            answer = "100000"
+        elif "website" in question:
+            answer = "alexwastaken.com"
+        elif "linkedin" in question:
+            answer = "https://www.linkedin.com/in/ahparsons/"
+        elif "currently employed by" in question:
+            answer = "no"
         elif "experience" in question:
             answer = "1"
         elif "sponsor" in question:
@@ -186,6 +224,12 @@ class botClass():
             answer = "Yes"
         elif "city" in question:
             answer = "San Diego"
+        elif "hear about" in question:
+            answer = "Linkedin"
+        elif "start" in question:
+            answer = "two weeks notice"
+        elif "preferred name" in question:
+            answer = "Alex"
         else:
             logging.info("Not able to answer question automatically. Please provide answer")
             #open file and document unanswerable questions, appending to it
@@ -198,16 +242,7 @@ class botClass():
 
         return answer
 
-
-
-
-    
-
-
-
-
     def apply(self):
-        time.sleep(5)
 
         try:
             # Wait until the apply button is clickable and click it
@@ -215,7 +250,21 @@ class botClass():
                 EC.element_to_be_clickable((By.CLASS_NAME, "jobs-apply-button--top-card"))
             )
             apply_button.click()
-            time.sleep(3)
+            time.sleep(1)
+
+            try:
+                    # Try to find and click the button
+                    susButton = WebDriverWait(self.driver, 3).until(
+                        EC.element_to_be_clickable((By.CLASS_NAME, "jobs-apply-button"))
+                    )
+                    susButton.click()
+                    print("Button clicked!")
+            except:
+                    # Ignore any errors and just continue the program
+                pass
+
+
+            time.sleep(1)
 
             # Fill out the application fields (assuming self.fill_out_fields is defined)
             self.fill_out_mobile()
@@ -228,7 +277,9 @@ class botClass():
                 print("'Review your application' button not found")
 
         # Start the loop until 'Submit' button is clicked
+        self.attempts = 0
         while True:
+            self.attempts += 1
             # Try to click 'Continue to next step' button if it exists
             try:
                 self.next_button = self.driver.find_element(By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
@@ -248,9 +299,9 @@ class botClass():
                 self.review_button = self.driver.find_element(By.CSS_SELECTOR, "button[aria-label='Review your application']")
                 if self.review_button.is_displayed():
                     print("Clicking 'Review your application'")
+                    self.process_questions()
                     self.review_button.click()
                     time.sleep(3)
-                    self.process_questions()
                     continue  # Go back to the start of the loop to check for the next step
 
             except NoSuchElementException:
@@ -258,6 +309,12 @@ class botClass():
 
             # If 'Submit' button is found, click and exit the loop
             try:
+                self.submit_container = self.driver.find_element(By.CLASS_NAME, "artdeco-modal__content")
+                for i in range(300, 1000, 100):
+                    self.driver.execute_script("arguments[0].scrollTo(0, arguments[1]);", self.submit_container, i)
+                    time.sleep(0.1)  # Small delay to ensure new content loads
+            
+
                 self.follow_button = self.driver.find_element(By.CSS_SELECTOR, "label[for='follow-company-checkbox']")
                 if self.follow_button.is_displayed():
                     self.follow_button.click()
@@ -274,32 +331,14 @@ class botClass():
                 break  # Exit loop if submit button is not found and there's no way to proceed
 
 
-            time.sleep(200)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     def applyLoop(self):
         for x in self.jobIDs:
             self.driver.get(f"https://www.linkedin.com/jobs/view/{x}/")
             self.apply()
-            time.sleep(3)
-
+            time.sleep(6)
+        self.jobIDs = []
         time.sleep(1)
         my_instance.findAppPage()
         time.sleep(12)
@@ -329,7 +368,7 @@ class botClass():
             return True
 
         except NoSuchElementException:
-            print('find new location and job to apply to')
+            return False
         
 
 random_number = random.randint(1000000000, 9999999999)
@@ -338,21 +377,18 @@ my_instance = botClass(random_number)
 
 
 my_instance.login()
+my_instance.choosePositionLocation()
 my_instance.findAppPage()
-my_instance.scroll()
-# somewhere here add if it returns no results find another location
-my_instance.applyLoop()
-
 
 applying = True
 
 while (applying):
 
-    if my_instance.nextPage():
-        applying = True
-    else:
-        my_instance.findAppPage()
-        print("No more pages to navigate. Start Applying -=------------------------------")
-        applying = False
-    
+    my_instance.scroll()
+    my_instance.applyLoop()
 
+    if my_instance.nextPage():
+        pass
+    else:
+        my_instance.choosePositionLocation()
+        my_instance.findAppPage()
