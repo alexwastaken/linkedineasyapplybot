@@ -279,6 +279,7 @@ class botClass():
         # Start the loop until 'Submit' button is clicked
         self.attempts = 0
         while True:
+            if ()
             self.attempts += 1
             # Try to click 'Continue to next step' button if it exists
             try:
@@ -302,7 +303,7 @@ class botClass():
                     self.process_questions()
                     self.review_button.click()
                     time.sleep(3)
-                    continue  # Go back to the start of the loop to check for the next step
+                    continue  # Go back to the start of the loop to check for the next stepa
 
             except NoSuchElementException:
                 print("'Review your application' button not found")
