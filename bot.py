@@ -4,6 +4,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import time
 import random
 import logging
@@ -35,8 +36,26 @@ class botClass():
         }
         self.jobIDs = []
         self.positions = ["Full Stack", "Software Engineer", "Web Developer", "Front End Developer"]
-        self.locations = ["Redmond, Wa", "San Diego, CA", "San Francisco, CA", "Austin, TX"]
+        self.locations = [
+                            "San Francisco, CA", "San Jose, CA", "Palo Alto, CA", "Mountain View, CA", "Sunnyvale, CA", 
+                            "Santa Clara, CA", "Fremont, CA", "Redwood City, CA", "Cupertino, CA", "Menlo Park, CA", 
+                            "Los Angeles, CA", "Irvine, CA", "San Diego, CA", "Sacramento, CA", "Seattle, WA", 
+                            "Redmond, WA", "Bellevue, WA", "Austin, TX", "Dallas, TX", "Houston, TX", 
+                            "Boston, MA", "Cambridge, MA", "New York, NY", "Brooklyn, NY", "Jersey City, NJ", 
+                            "Newark, NJ", "Chicago, IL", "Denver, CO", "Boulder, CO", "Phoenix, AZ", 
+                            "Scottsdale, AZ", "Tempe, AZ", "Raleigh, NC", "Durham, NC", "Charlotte, NC", 
+                            "Atlanta, GA", "Nashville, TN", "Salt Lake City, UT", "Provo, UT", "Lehi, UT", 
+                            "Portland, OR", "Beaverton, OR", "Hillsboro, OR", "Miami, FL", "Orlando, FL", 
+                            "Tampa, FL", "St. Petersburg, FL", "Minneapolis, MN", "Madison, WI", "Detroit, MI", 
+                            "Ann Arbor, MI", "Pittsburgh, PA", "Philadelphia, PA", "Columbus, OH", "Cleveland, OH", 
+                            "Indianapolis, IN", "Cincinnati, OH", "St. Louis, MO", "Kansas City, MO", "Omaha, NE", 
+                            "Las Vegas, NV", "Reno, NV", "Baltimore, MD", "Washington, D.C.", "Arlington, VA", 
+                            "Alexandria, VA", "Tysons, VA", "Reston, VA", "Herndon, VA", "Richmond, VA", 
+                            "Birmingham, AL", "Oklahoma City, OK", "Tulsa, OK", "Fargo, ND", "Sioux Falls, SD", 
+                            "Boise, ID", "Spokane, WA", "Santa Monica, CA"
+                        ]
         self.mobileNumber = "8582054657"
+        self.pageNumber = 0
  
     def browser_options(self):
         options = webdriver.ChromeOptions()
@@ -51,9 +70,10 @@ class botClass():
     
     def choosePositionLocation(self) -> None:
     
-        random_number = random.randint(1, 3)
-        self.position = self.positions[random_number]
-        self.location = self.locations[random_number]
+        random_numberP = random.randint(0, 3)
+        random_numberL = random.randint(0, 76)
+        self.position = self.positions[random_numberP]
+        self.location = self.locations[random_numberL]
 
     def login(self):
 
@@ -72,7 +92,7 @@ class botClass():
     
     def findAppPage(self):
         time.sleep(1)
-        self.driver.get("https://www.linkedin.com/jobs/search/?keywords=" + self.position + "&location=" + self.location + "&start=0&f_AL=true")
+        self.driver.get("https://www.linkedin.com/jobs/search/?keywords=" + self.position + "&location=" + self.location + "&start=" + str(25 * self.pageNumber) + "&f_AL=true")
         self.driver.set_window_position(1, 1)
         self.driver.maximize_window()
         time.sleep(5)
@@ -115,7 +135,7 @@ class botClass():
             
             for field in form:
                 question = field.text.lower()
-                answer = "yes"  # Set the answer to "Yes" for all radio buttons
+                answer = self.ans_question(question)
 
                 try:
                     # Handle checkboxes: Find all checkboxes and check them regardless of labels
@@ -130,14 +150,14 @@ class botClass():
                     # Handle radio buttons: Select the "Yes" option for all radio button questions
                     radio_buttons = field.find_elements(By.XPATH, ".//input[@type='radio']")
                     if radio_buttons:
+                        answer = "yes"
                         for radio in radio_buttons:
                             # If the value is "yes" (case-insensitive), select it
                             if radio.get_attribute('value').strip().lower() == "yes":
-                                # Use JavaScript to click the radio button
-                                if not radio.is_selected():
-                                    self.driver.execute_script("arguments[0].click();", radio)
-                                    print(f"Selected 'Yes' for radio button question: {question}")
-                                break  # Exit once "Yes" is found and clicked
+
+                                self.driver.execute_script("arguments[0].click();", radio)
+                                print(f"Selected 'Yes' for radio button question: {question}")
+
 
                     # Handle dropdowns (multi-select)
                     dropdowns = field.find_elements(By.XPATH, ".//*[contains(@id, 'text-entity-list-form-component')]")
@@ -177,7 +197,7 @@ class botClass():
     def ans_question(self, question): #refactor this to an ans.yaml file
         answer = None
         if "how many" in question:
-            answer = "1"
+            answer = "3"
         elif "ever been employed" in question:
             answer = "no"
         elif "years of expierience" in question:
@@ -193,7 +213,7 @@ class botClass():
         elif "currently employed by" in question:
             answer = "no"
         elif "experience" in question:
-            answer = "1"
+            answer = "3"
         elif "sponsor" in question:
             answer = "No"
         elif 'do you ' in question:
@@ -266,15 +286,20 @@ class botClass():
 
             time.sleep(1)
 
-            # Fill out the application fields (assuming self.fill_out_fields is defined)
-            self.fill_out_mobile()
-            time.sleep(3)
-            self.next_ButtonInitial = self.driver.find_element(By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
-            self.next_ButtonInitial.click()
-            time.sleep(1)
+            try: 
+                # Fill out the application fields (assuming self.fill_out_fields is defined)
+                self.fill_out_mobile()
+                time.sleep(3)
+                self.next_ButtonInitial = self.driver.find_element(By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
+                self.next_ButtonInitial.click()
+                time.sleep(1)
 
-        except NoSuchElementException:
-                print("'Review your application' button not found")
+            except:
+                pass
+
+        except TimeoutException:
+            return  # Skip the current application and move to the next one
+
 
         # Start the loop until 'Submit' button is clicked
         self.attempts = 0
@@ -341,7 +366,7 @@ class botClass():
             self.driver.get(f"https://www.linkedin.com/jobs/view/{x}/")
             self.apply()
             time.sleep(6)
-        self.jobIDs = []
+        print('resetting and finding new page')
         time.sleep(1)
         my_instance.findAppPage()
         time.sleep(12)
@@ -362,10 +387,11 @@ class botClass():
     def nextPage(self):
 
         time.sleep(3)
+
+        self.jobIDs = []
         
         try:
             element = self.driver.find_element(By.CSS_SELECTOR, ".jobs-search-pagination__button--next")
-
             element.click()
             time.sleep(5)
             return True
@@ -391,7 +417,9 @@ while (applying):
     my_instance.applyLoop()
 
     if my_instance.nextPage():
+        my_instance.pageNumber += 1
         pass
     else:
+        my_instance.pageNumber = 0
         my_instance.choosePositionLocation()
         my_instance.findAppPage()
