@@ -8,10 +8,16 @@ from selenium.common.exceptions import TimeoutException
 import time
 import random
 import logging
+import yaml
+
 
 class botClass():
 
     def __init__(self, id):
+
+        with open('addyourinformation.yaml', 'r') as file:
+            self.config = yaml.safe_load(file)
+
         self.runID = id
 
         self.driver = webdriver.Chrome(options=self.browser_options())
@@ -35,26 +41,9 @@ class botClass():
             "easy_apply_button": (By.XPATH, '//button[contains(@class, "jobs-apply-button")]')
         }
         self.jobIDs = []
-        self.positions = ["Full Stack", "Software Engineer", "Web Developer", "Front End Developer"]
-        self.locations = [
-                            "San Francisco, CA", "San Jose, CA", "Palo Alto, CA", "Mountain View, CA", "Sunnyvale, CA", 
-                            "Santa Clara, CA", "Fremont, CA", "Redwood City, CA", "Cupertino, CA", "Menlo Park, CA", 
-                            "Los Angeles, CA", "Irvine, CA", "San Diego, CA", "Sacramento, CA", "Seattle, WA", 
-                            "Redmond, WA", "Bellevue, WA", "Austin, TX", "Dallas, TX", "Houston, TX", 
-                            "Boston, MA", "Cambridge, MA", "New York, NY", "Brooklyn, NY", "Jersey City, NJ", 
-                            "Newark, NJ", "Chicago, IL", "Denver, CO", "Boulder, CO", "Phoenix, AZ", 
-                            "Scottsdale, AZ", "Tempe, AZ", "Raleigh, NC", "Durham, NC", "Charlotte, NC", 
-                            "Atlanta, GA", "Nashville, TN", "Salt Lake City, UT", "Provo, UT", "Lehi, UT", 
-                            "Portland, OR", "Beaverton, OR", "Hillsboro, OR", "Miami, FL", "Orlando, FL", 
-                            "Tampa, FL", "St. Petersburg, FL", "Minneapolis, MN", "Madison, WI", "Detroit, MI", 
-                            "Ann Arbor, MI", "Pittsburgh, PA", "Philadelphia, PA", "Columbus, OH", "Cleveland, OH", 
-                            "Indianapolis, IN", "Cincinnati, OH", "St. Louis, MO", "Kansas City, MO", "Omaha, NE", 
-                            "Las Vegas, NV", "Reno, NV", "Baltimore, MD", "Washington, D.C.", "Arlington, VA", 
-                            "Alexandria, VA", "Tysons, VA", "Reston, VA", "Herndon, VA", "Richmond, VA", 
-                            "Birmingham, AL", "Oklahoma City, OK", "Tulsa, OK", "Fargo, ND", "Sioux Falls, SD", 
-                            "Boise, ID", "Spokane, WA", "Santa Monica, CA"
-                        ]
-        self.mobileNumber = "8582054657"
+        self.positions = self.config['positions']
+        self.locations = self.config['locations']
+        self.mobileNumber = self.config['user_credentials']['mobilenumber']
         self.pageNumber = 0
  
     def browser_options(self):
@@ -79,10 +68,10 @@ class botClass():
 
         time.sleep(2)
         self.elem = self.driver.find_element(By.ID, "username")
-        self.elem.send_keys("alexhparsons@gmail.com")
+        self.elem.send_keys(self.config['user_credentials']['email'])
         time.sleep(1)
         self.elem = self.driver.find_element(By.ID, "password")
-        self.elem.send_keys("Googleearth123!")
+        self.elem.send_keys(self.config['user_credentials']['password'])
         self.elem = self.driver.find_element("xpath",'//*[@id="organic-div"]/form/div[3]/button')
         time.sleep(1)
         self.elem.click()
@@ -105,10 +94,9 @@ class botClass():
         try:
             scroll_container = self.driver.find_element(By.CLASS_NAME, "jobs-search-results-list")
 
-            # Scroll within the container to load more results
             for i in range(300, 3800, 100):
                 self.driver.execute_script("arguments[0].scrollTo(0, arguments[1]);", scroll_container, i)
-                time.sleep(0.1)  # Small delay to ensure new content loads
+                time.sleep(0.1)
             
             scroll_container = self.driver.find_element(By.CLASS_NAME, "jobs-search-results-list")
 
@@ -124,13 +112,9 @@ class botClass():
 
         time.sleep(12)
 
-
-
-
     def process_questions(self):
         time.sleep(0.5)
         try:
-            # Locate all fields in the job application form
             form = self.driver.find_elements(By.XPATH, "//div[contains(@class,'jobs-easy-apply-form-section__grouping')]")
             
             for field in form:
@@ -138,7 +122,6 @@ class botClass():
                 answer = self.ans_question(question)
 
                 try:
-                    # Handle checkboxes: Find all checkboxes and check them regardless of labels
                     checkboxes = field.find_elements(By.XPATH, ".//input[@type='checkbox']")
                     if checkboxes:
                         for checkbox in checkboxes:
@@ -147,25 +130,22 @@ class botClass():
                                 self.driver.execute_script("arguments[0].click();", checkbox)
                                 print(f"Checked a checkbox for question: {question}")
 
-                    # Handle radio buttons: Select the "Yes" option for all radio button questions
                     radio_buttons = field.find_elements(By.XPATH, ".//input[@type='radio']")
                     if radio_buttons:
                         answer = "yes"
                         for radio in radio_buttons:
-                            # If the value is "yes" (case-insensitive), select it
+                            
                             if radio.get_attribute('value').strip().lower() == "yes":
 
                                 self.driver.execute_script("arguments[0].click();", radio)
                                 print(f"Selected 'Yes' for radio button question: {question}")
 
-
-                    # Handle dropdowns (multi-select)
                     dropdowns = field.find_elements(By.XPATH, ".//*[contains(@id, 'text-entity-list-form-component')]")
                     if dropdowns:
                         for dropdown in dropdowns:
                             options = dropdown.find_elements(By.TAG_NAME, "option")
                             if options:
-                                selected_option = random.choice(options[:2])  # Randomly choose between first and second options
+                                selected_option = random.choice(options[:2])
                                 selected_option.click()
                                 break
 
@@ -175,14 +155,12 @@ class botClass():
                         for text_input in text_inputs:
                             if text_input.get_attribute('value').strip():
                                 print(f"Field already populated with: {text_input.get_attribute('value')}, skipping it.")
-                                continue  # Skip if field is already populated
+                                continue
 
-                            # Send the "Yes" answer or relevant input
                             text_input.send_keys(answer)
 
-                            time.sleep(0.5)  # Allow time for the input to process
+                            time.sleep(0.5)
 
-                            # Simulate down arrow and Enter to handle dropdowns, if applicable
                             text_input.send_keys(Keys.ARROW_DOWN)
                             text_input.send_keys(Keys.ENTER)
 
@@ -194,78 +172,25 @@ class botClass():
             print(f"Error: {e}")
             return
 
-    def ans_question(self, question): #refactor this to an ans.yaml file
+    def ans_question(self, question):
+        question_lower = question.lower()
         answer = None
-        if "how many" in question:
-            answer = "3"
-        elif "ever been employed" in question:
-            answer = "no"
-        elif "years of expierience" in question:
-            answer = "3"
-        elif "compensation" in question:
-            answer = "100000"
-        elif "salary" in question:
-            answer = "100000"
-        elif "website" in question:
-            answer = "alexwastaken.com"
-        elif "linkedin" in question:
-            answer = "https://www.linkedin.com/in/ahparsons/"
-        elif "currently employed by" in question:
-            answer = "no"
-        elif "experience" in question:
-            answer = "3"
-        elif "sponsor" in question:
-            answer = "No"
-        elif 'do you ' in question:
-            answer = "Yes"
-        elif "have you " in question:
-            answer = "Yes"
-        elif "US citizen" in question:
-            answer = "Yes"
-        elif "are you " in question:
-            answer = "Yes"
-        elif "salary" in question:
-            answer = "90000"
-        elif "can you" in question:
-            answer = "Yes"
-        elif "gender" in question:
-            answer = "Male"
-        elif "race" in question:
-            answer = "Wish not to answer"
-        elif "lgbtq" in question:
-            answer = "Wish not to answer"
-        elif "ethnicity" in question:
-            answer = "Wish not to answer"
-        elif "nationality" in question:
-            answer = "Wish not to answer"
-        elif "government" in question:
-            answer = "I do not wish to self-identify"
-        elif "are you legally" in question:
-            answer = "Yes"
-        elif "city" in question:
-            answer = "San Diego"
-        elif "hear about" in question:
-            answer = "Linkedin"
-        elif "start" in question:
-            answer = "two weeks notice"
-        elif "preferred name" in question:
-            answer = "Alex"
-        else:
-            logging.info("Not able to answer question automatically. Please provide answer")
-            #open file and document unanswerable questions, appending to it
-            answer = "1"
-            time.sleep(5)
 
-            # df = pd.DataFrame(self.answers, index=[0])
-            # df.to_csv(self.qa_file, encoding="utf-8")
-        logging.info("Answering question: " + question + " with answer: " + answer)
+        for key, value in self.config_data['questions_and_answers'].items():
+            if key.lower() in question_lower:
+                answer = value
+                logging.info(f"Answering question: {question} with answer: {answer}")
+                return answer
 
+        logging.info(f"Not able to answer question automatically: {question}")
+        answer = "1"
+        time.sleep(5)
         return answer
 
     def apply(self):
 
         try:
-            # Wait until the apply button is clickable and click it
+
             apply_button = WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable((By.CLASS_NAME, "jobs-apply-button--top-card"))
             )
@@ -273,21 +198,19 @@ class botClass():
             time.sleep(1)
 
             try:
-                    # Try to find and click the button
+
                     susButton = WebDriverWait(self.driver, 3).until(
                         EC.element_to_be_clickable((By.CLASS_NAME, "jobs-apply-button"))
                     )
                     susButton.click()
                     print("Button clicked!")
             except:
-                    # Ignore any errors and just continue the program
                 pass
 
 
             time.sleep(1)
 
             try: 
-                # Fill out the application fields (assuming self.fill_out_fields is defined)
                 self.fill_out_mobile()
                 time.sleep(3)
                 self.next_ButtonInitial = self.driver.find_element(By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
@@ -298,17 +221,15 @@ class botClass():
                 pass
 
         except TimeoutException:
-            return  # Skip the current application and move to the next one
-
-
-        # Start the loop until 'Submit' button is clicked
+            return
+        
         self.attempts = 0
         while (True):
             if (self.attempts > 8):
                 break
 
             self.attempts += 1
-            # Try to click 'Continue to next step' button if it exists
+
             try:
                 self.next_button = self.driver.find_element(By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
                 
@@ -317,12 +238,11 @@ class botClass():
                     time.sleep(3)
                     self.process_questions()
                     self.next_button.click()
-                    continue  # Go back to the start of the loop to check for the next step
+                    continue
 
             except NoSuchElementException:
                 print("'Continue to next step' button not found")
 
-            # Try to click 'Review your application' button if it exists
             try:
                 self.review_button = self.driver.find_element(By.CSS_SELECTOR, "button[aria-label='Review your application']")
                 if self.review_button.is_displayed():
@@ -330,17 +250,16 @@ class botClass():
                     self.process_questions()
                     self.review_button.click()
                     time.sleep(3)
-                    continue  # Go back to the start of the loop to check for the next stepa
+                    continue
 
             except NoSuchElementException:
                 print("'Review your application' button not found")
 
-            # If 'Submit' button is found, click and exit the loop
             try:
                 self.submit_container = self.driver.find_element(By.CLASS_NAME, "artdeco-modal__content")
                 for i in range(300, 1000, 100):
                     self.driver.execute_script("arguments[0].scrollTo(0, arguments[1]);", self.submit_container, i)
-                    time.sleep(0.1)  # Small delay to ensure new content loads
+                    time.sleep(0.1)
             
 
                 self.follow_button = self.driver.find_element(By.CSS_SELECTOR, "label[for='follow-company-checkbox']")
@@ -352,14 +271,11 @@ class botClass():
                 if self.submit_button.is_displayed():
                     self.submit_button.click()
                     print("Application submitted")
-                    break  # Exit the loop after submitting the application
+                    break
 
             except NoSuchElementException as e:
                 print("Submit button or follow checkbox not found:", e)
-                break  # Exit loop if submit button is not found and there's no way to proceed
-
-
-
+                break
 
     def applyLoop(self):
         for x in self.jobIDs:
