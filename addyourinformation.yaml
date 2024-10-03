@@ -4,8 +4,8 @@ questions_and_answers:
   "years of experience": "3"
   "compensation": "100000"
   "salary": "100000"
-  "website": "example.com"
-  "linkedin": "add your linkedin profile"
+  "website": "website"
+  "linkedin": "website"
   "currently employed by": "no"
   "experience": "3"
   "sponsor": "No"
@@ -29,7 +29,7 @@ questions_and_answers:
 user_credentials:
   email: email
   password: password
-  mobilenumber: mobilenumber
+  mobilenumber: number
 
 locations:
   - San Francisco, CA
@@ -37,12 +37,6 @@ locations:
   - Palo Alto, CA
   - Mountain View, CA
   - Sunnyvale, CA
-  - Santa Clara, CA
-  - Fremont, CA
-  - Redwood City, CA
-  - Cupertino, CA
-  - Menlo Park, CA
-  - Los Angeles, CA
   - Irvine, CA
   - San Diego, CA
   - Sacramento, CA
@@ -52,64 +46,6 @@ locations:
   - Austin, TX
   - Dallas, TX
   - Houston, TX
-  - Boston, MA
-  - Cambridge, MA
-  - New York, NY
-  - Brooklyn, NY
-  - Jersey City, NJ
-  - Newark, NJ
-  - Chicago, IL
-  - Denver, CO
-  - Boulder, CO
-  - Phoenix, AZ
-  - Scottsdale, AZ
-  - Tempe, AZ
-  - Raleigh, NC
-  - Durham, NC
-  - Charlotte, NC
-  - Atlanta, GA
-  - Nashville, TN
-  - Salt Lake City, UT
-  - Provo, UT
-  - Lehi, UT
-  - Portland, OR
-  - Beaverton, OR
-  - Hillsboro, OR
-  - Miami, FL
-  - Orlando, FL
-  - Tampa, FL
-  - St. Petersburg, FL
-  - Minneapolis, MN
-  - Madison, WI
-  - Detroit, MI
-  - Ann Arbor, MI
-  - Pittsburgh, PA
-  - Philadelphia, PA
-  - Columbus, OH
-  - Cleveland, OH
-  - Indianapolis, IN
-  - Cincinnati, OH
-  - St. Louis, MO
-  - Kansas City, MO
-  - Omaha, NE
-  - Las Vegas, NV
-  - Reno, NV
-  - Baltimore, MD
-  - Washington, D.C.
-  - Arlington, VA
-  - Alexandria, VA
-  - Tysons, VA
-  - Reston, VA
-  - Herndon, VA
-  - Richmond, VA
-  - Birmingham, AL
-  - Oklahoma City, OK
-  - Tulsa, OK
-  - Fargo, ND
-  - Sioux Falls, SD
-  - Boise, ID
-  - Spokane, WA
-  - Santa Monica, CA
 
 positions:
   - Full Stack engineer

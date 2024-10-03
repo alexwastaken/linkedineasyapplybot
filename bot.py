@@ -40,7 +40,7 @@ class botClass():
     def choosePositionLocation(self) -> None:
     
         random_numberP = random.randint(0, 3)
-        random_numberL = random.randint(0, 76)
+        random_numberL = random.randint(0, 13)
         self.position = self.positions[random_numberP]
         self.location = self.locations[random_numberL]
 
@@ -114,11 +114,9 @@ class botClass():
                     if radio_buttons:
                         answer = "yes"
                         for radio in radio_buttons:
-                            
-                            if radio.get_attribute('value').strip().lower() == "yes":
 
-                                self.driver.execute_script("arguments[0].click();", radio)
-                                print(f"Selected 'Yes' for radio button question: {question}")
+                            self.driver.execute_script("arguments[0].click();", radio)
+                            print(f"Selected 'Yes' for radio button question: {question}")
 
                     dropdowns = field.find_elements(By.XPATH, ".//*[contains(@id, 'text-entity-list-form-component')]")
                     if dropdowns:
@@ -156,7 +154,7 @@ class botClass():
         question_lower = question.lower()
         answer = None
 
-        for key, value in self.config_data['questions_and_answers'].items():
+        for key, value in self.config['questions_and_answers'].items():
             if key.lower() in question_lower:
                 answer = value
                 logging.info(f"Answering question: {question} with answer: {answer}")
@@ -288,6 +286,7 @@ class botClass():
         
         try:
             element = self.driver.find_element(By.CSS_SELECTOR, ".jobs-search-pagination__button--next")
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
             element.click()
             time.sleep(5)
             return True
